@@ -366,6 +366,11 @@ OSMCHA_FRONTEND_VERSION = env('OSMCHA_FRONTEND_VERSION', default='oh-pages')
 MAP_ROULETTE_API_KEY = env('MAP_ROULETTE_API_KEY', default=None)
 MAP_ROULETTE_API_URL = env('MAP_ROULETTE_API_URL', default="https://maproulette.org/api/v2/")
 
+# OSM URLs
+OSM_API_URL = env('OSM_API_URL', default='https://api.openstreetmap.org')
+OSM_BASE_URL = env('OSM_BASE_URL', default='https://www.openstreetmap.org')
+OSM_CHANGESETS_URL = env('OSM_CHANGESETS_URL', default='https://planet.openstreetmap.org/replication/changesets')
+
 # Define the URL to where the user will be redirected after the authentication
 # in OSM website
 OAUTH_REDIRECT_URI = env(

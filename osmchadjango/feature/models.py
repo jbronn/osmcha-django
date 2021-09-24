@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.contrib.postgres.fields import JSONField
@@ -38,7 +39,7 @@ class Feature(models.Model):
 
     def osm_link(self):
         """Return the link to the feature page on OSM website."""
-        return 'https://www.openstreetmap.org/%s/%s' % (self.osm_type, self.osm_id)
+        return '{}/{}/{}'.format(settings.OSM_BASE_URL, self.osm_type, self.osm_id)
 
     @property
     def all_tags(self):
