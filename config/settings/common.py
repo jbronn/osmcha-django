@@ -371,12 +371,13 @@ OSM_API_URL = env('OSM_API_URL', default='https://api.openstreetmap.org')
 OSM_BASE_URL = env('OSM_BASE_URL', default='https://www.openstreetmap.org')
 OSM_CHANGESETS_URL = env('OSM_CHANGESETS_URL', default='https://planet.openstreetmap.org/replication/changesets')
 
-# Define the URL to where the user will be redirected after the authentication
-# in OSM website
+OAUTH_API_URL = env('OAUTH_API_URL', default=OSM_API_URL)
 OAUTH_BASE_URL = env(
     'OAUTH_BASE_URL',
     default='{}/oauth'.format(OSM_BASE_URL)
     )
+# Define the URL to where the user will be redirected after the authentication
+# in OSM website
 OAUTH_REDIRECT_URI = env(
     'OAUTH_REDIRECT_URI',
     default='http://localhost:8000/oauth-landing.html'

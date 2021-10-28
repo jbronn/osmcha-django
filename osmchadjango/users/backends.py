@@ -30,7 +30,7 @@ class OpenStreetMapOAuth(BaseOAuth1):
     def user_data(self, access_token, *args, **kwargs):
         """Return user data provided"""
         response = self.oauth_request(
-            access_token, '{}/api/0.6/user/details'.format(settings.OSM_API_URL)
+            access_token, '{}/api/0.6/user/details'.format(settings.OAUTH_API_URL)
         )
         try:
             dom = minidom.parseString(response.content)
