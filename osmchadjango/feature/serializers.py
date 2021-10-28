@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework.fields import ReadOnlyField, SerializerMethodField
 from rest_framework.serializers import (
     ModelSerializer, PrimaryKeyRelatedField
@@ -22,6 +23,7 @@ class FeatureSerializerToStaff(GeoFeatureModelSerializer):
     reasons = BasicSuspicionReasonsSerializer(many=True, read_only=True)
     tags = BasicTagSerializer(many=True, read_only=True)
     osm_link = SerializerMethodField()
+    osm_user_link = SerializerMethodField()
 
     class Meta:
         model = Feature
@@ -30,6 +32,9 @@ class FeatureSerializerToStaff(GeoFeatureModelSerializer):
 
     def get_osm_link(self, obj):
         return obj.osm_link()
+
+    def get_osm_user_link(self, obj):
+        return "{}/user".format(settings.OSM_BASE_URL)
 
 
 class FeatureSerializer(FeatureSerializerToStaff):

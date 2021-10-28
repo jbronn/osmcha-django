@@ -261,7 +261,7 @@ SOCIAL_AUTH_OPENSTREETMAP_SECRET = env('OAUTH_OSM_SECRET', default='')
 # AUTHENTICATION CONFIGURATION
 # ------------------------------------------------------------------------------
 AUTHENTICATION_BACKENDS = (
-    'social_core.backends.openstreetmap.OpenStreetMapOAuth',
+    'osmchadjango.users.backends.OpenStreetMapOAuth',
     'django.contrib.auth.backends.ModelBackend',
 )
 
@@ -373,6 +373,10 @@ OSM_CHANGESETS_URL = env('OSM_CHANGESETS_URL', default='https://planet.openstree
 
 # Define the URL to where the user will be redirected after the authentication
 # in OSM website
+OAUTH_BASE_URL = env(
+    'OAUTH_BASE_URL',
+    default='{}/oauth'.format(OSM_BASE_URL)
+    )
 OAUTH_REDIRECT_URI = env(
     'OAUTH_REDIRECT_URI',
     default='http://localhost:8000/oauth-landing.html'
