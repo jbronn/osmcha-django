@@ -74,7 +74,7 @@ def get_last_replication_id():
     state = requests.get(
         join(settings.OSM_CHANGESETS_URL, 'state.yaml')
         ).content
-    state = yaml.load(state)
+    state = yaml.load(state, Loader=yaml.SafeLoader)
     return state.get('sequence')
 
 
