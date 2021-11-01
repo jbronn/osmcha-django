@@ -92,9 +92,14 @@ def fetch_latest():
         last_import = None
 
     sequence = get_last_replication_id()
+    if sequence <= 0:
+        print("No replications to import")
+        return
 
     if last_import:
         start = last_import + 1
+    elif sequence < 1000:
+        start = sequence
     else:
         start = sequence - 1000
     print("Importing replications from %d to %d" % (start, sequence,))
