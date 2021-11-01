@@ -82,11 +82,10 @@ def get_last_replication_id():
 def fetch_latest():
     """Function to import all the replication files since the last import or the
     last 1000.
-    FIXME: define error in except line
     """
     try:
         last_import = Import.objects.all().order_by('-end')[0].end
-    except:
+    except IndexError:
         last_import = None
 
     sequence = get_last_replication_id()
