@@ -54,9 +54,12 @@ def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
 
 def format_url(n):
     """Return the url of a replication file."""
-    n = str(n)
-    return join(settings.OSM_CHANGESETS_URL, '00%s' % n[0], n[1:4], '%s.osm.gz' % n[4:])
-
+    return "{}/{:03d}/{:03d}/{:03d}.osm.gz".format(
+        settings.OSM_CHANGESETS_URL,
+        n // 1000000,
+        (n // 1000) % 1000,
+        (n % 1000)
+    )
 
 @shared_task
 def import_replications(start, end):
