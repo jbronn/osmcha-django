@@ -42,7 +42,8 @@ redis==2.10.6
 
 # Your custom requirements go here
 PyYAML==5.4.1
-osmcha==0.8.5
+# Install OSMCha from fork with support for URL customization.
+https://github.com/radiant-maxar/osmcha/archive/main.zip
 
 # git python is required by the frontend management command
 GitPython==3.1.18
