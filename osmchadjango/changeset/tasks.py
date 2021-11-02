@@ -77,8 +77,8 @@ def get_last_replication_id():
     state = requests.get(
         join(settings.OSM_CHANGESETS_URL, 'state.yaml')
         ).content
-    state = yaml.load(state, Loader=yaml.SafeLoader)
-    return state.get('sequence')
+    state = yaml.safe_load(state)
+    return state.get('sequence', 0)
 
 
 @shared_task
@@ -86,22 +86,20 @@ def fetch_latest():
     """Function to import all the replication files since the last import or the
     last 1000.
     """
-    try:
-        last_import = Import.objects.all().order_by('-end')[0].end
-    except IndexError:
-        last_import = None
-
     sequence = get_last_replication_id()
     if sequence <= 0:
         print("No replication changesets to import")
         return
 
+    last_import = Import.objects.order_by('-end').first()
     if last_import:
-        start = last_import + 1
-    elif sequence < 1000:
-        start = sequence
+        start = last_import.end + 1
     else:
-        start = sequence - 1000
+        if sequence <= 1000:
+            start = 1
+        else:
+            start = sequence - 1000
+
     print("Importing replications from %d to %d" % (start, sequence,))
     import_replications(start, sequence)
 
