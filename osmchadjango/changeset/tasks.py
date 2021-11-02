@@ -93,7 +93,7 @@ def fetch_latest():
 
     sequence = get_last_replication_id()
     if sequence <= 0:
-        print("No replications to import")
+        print("No replication changesets to import")
         return
 
     if last_import:
