@@ -66,7 +66,8 @@ def import_replications(start, end):
     """Recieves a start and a end number and import each replication file in
     this interval.
     """
-    Import(start=start, end=end).save()
+    imp, created = Import.objects.get_or_create(start=start, end=end)
+    imp.save()
     urls = [format_url(n) for n in range(start, end + 1)]
     group(get_filter_changeset_file.s(url) for url in urls)()
 
@@ -74,10 +75,11 @@ def import_replications(start, end):
 def get_last_replication_id():
     """Get the id number of the last replication file available on Planet OSM.
     """
-    state = requests.get(
-        join(settings.OSM_CHANGESETS_URL, 'state.yaml')
+    state = yaml.safe_load(
+        requests.get(
+            join(settings.OSM_CHANGESETS_URL, 'state.yaml')
         ).content
-    state = yaml.safe_load(state)
+    )
     return state.get('sequence', 0)
 
 
