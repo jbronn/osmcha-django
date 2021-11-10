@@ -143,6 +143,12 @@ class MappingTeamFilter(filters.FilterSet):
         help_text="""Filter Mapping Teams by the username of the user that
             created it. This field uses the exact lookup expression."""
         )
+    uid = filters.CharFilter(
+        field_name='created_by__id',
+        lookup_expr='exact',
+        help_text="""Filter Mapping Teams by the id of the user that
+            created it. This field uses the exact lookup expression."""
+        )
 
     class Meta:
         model = MappingTeam
