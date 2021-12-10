@@ -100,10 +100,10 @@ def fetch_latest():
     if last_import:
         start = last_import.end + 1
     else:
-        if sequence <= 1000:
+        if sequence <= settings.OSM_CHANGESETS_MAX_IMPORT:
             start = 1
         else:
-            start = sequence - 1000
+            start = sequence - settings.OSM_CHANGESETS_MAX_IMPORT
 
     print("Importing replications from %d to %d" % (start, sequence,))
     import_replications(start, sequence)
