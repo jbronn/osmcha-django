@@ -5,6 +5,7 @@ from urllib.parse import quote
 import yaml
 
 from django.conf import settings
+from django.utils.timezone import now
 
 import requests
 from requests_oauthlib import OAuth1Session
@@ -67,7 +68,9 @@ def import_replications(start, end):
     this interval.
     """
     imp, created = Import.objects.get_or_create(start=start, end=end)
-    imp.save()
+    if not created:
+        imp.date = now()
+        imp.save()
     urls = [format_url(n) for n in range(start, end + 1)]
     group(get_filter_changeset_file.s(url) for url in urls)()
 
