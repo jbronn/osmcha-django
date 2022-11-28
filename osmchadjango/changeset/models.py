@@ -1,5 +1,5 @@
-from django.conf import settings
 from django.contrib.gis.db import models
+from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.fields import JSONField
 from django.utils.translation import ugettext, ugettext_lazy as _
 
@@ -60,28 +60,29 @@ class UserWhitelist(models.Model):
 
 class Changeset(models.Model):
     user = models.CharField(max_length=1000, db_index=True)
-    uid = models.CharField(_('User ID'), max_length=255, blank=True, null=True, db_index=True)
-    editor = models.CharField(max_length=255, blank=True, null=True, db_index=True)
+    uid = models.CharField(_('User ID'), max_length=255, blank=True, null=True)
+    editor = models.CharField(max_length=255, blank=True, null=True)
     powerfull_editor = models.BooleanField(_('Powerfull Editor'), default=False)
-    comment = models.CharField(max_length=1000, blank=True, null=True, db_index=True)
-    comments_count = models.IntegerField(null=True, db_index=True, default=0)
-    source = models.CharField(max_length=1000, blank=True, null=True, db_index=True)
-    imagery_used = models.CharField(max_length=1000, blank=True, null=True, db_index=True)
+    comment = models.CharField(max_length=1000, blank=True, null=True)
+    comments_count = models.IntegerField(null=True, default=0)
+    source = models.CharField(max_length=1000, blank=True, null=True)
+    imagery_used = models.CharField(max_length=1000, blank=True, null=True)
     date = models.DateTimeField(null=True, db_index=True)
     reasons = models.ManyToManyField(SuspicionReasons, related_name='changesets')
     new_features = JSONField(default=list)
     reviewed_features = JSONField(default=list)
-    create = models.IntegerField(db_index=True, null=True)
-    modify = models.IntegerField(db_index=True, null=True)
-    delete = models.IntegerField(db_index=True, null=True)
+    tag_changes = JSONField(default=dict)
+    create = models.IntegerField(null=True)
+    modify = models.IntegerField(null=True)
+    delete = models.IntegerField(null=True)
     bbox = models.PolygonField(null=True)
     area = models.FloatField(blank=True, null=True)
-    is_suspect = models.BooleanField(db_index=True)
-    harmful = models.NullBooleanField(db_index=True)
+    is_suspect = models.BooleanField()
+    harmful = models.NullBooleanField()
     tags = models.ManyToManyField(Tag, related_name='changesets')
-    checked = models.BooleanField(default=False, db_index=True)
+    checked = models.BooleanField(default=False)
     check_user = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True, db_index=True
+        User, on_delete=models.SET_NULL, null=True, blank=True
         )
     check_date = models.DateTimeField(null=True, blank=True)
     metadata = JSONField(default=dict)
@@ -120,6 +121,9 @@ class Changeset(models.Model):
 
     class Meta:
         ordering = ['-id']
+        indexes = [
+            GinIndex(fields=['tag_changes'])
+        ]
 
 
 class Import(models.Model):

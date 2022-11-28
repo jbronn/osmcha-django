@@ -48,6 +48,11 @@ urlpatterns = [
         name='detail'
     ),
     re_path(
+        r'^changesets/(?P<pk>\w+)/tag-changes/$',
+        view=views.SetChangesetTagChangesAPIView.as_view({'post': 'set_tag_changes'}),
+        name='set-tag-changes'
+    ),
+    re_path(
         r'^changesets/(?P<pk>\w+)/set-harmful/$',
         view=views.CheckChangeset.as_view({'put': 'set_harmful'}),
         name='set-harmful'
@@ -125,9 +130,9 @@ urlpatterns = [
         view=views.ChangesetStatsAPIView.as_view(),
         name='stats'
     ),
-    re_path(
-        r'^user-stats/(?P<uid>\w+)/$',
-        view=views.UserStatsAPIView.as_view(),
+    path(
+        'user-stats/<int:uid>/',
+        view=views.user_stats,
         name='user-stats'
     ),
 ]

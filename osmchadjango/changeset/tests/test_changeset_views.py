@@ -237,6 +237,36 @@ class TestChangesetListView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 26)
 
+    def test_tag_changes_filters(self):
+        """Test filters by metadata field in the changeset list view.
+        """
+        ChangesetFactory(
+            tag_changes={"oneway": ["yes", "no"], "lanes": ["2", "4", "1"]}
+            )
+        self.client.login(username=self.user.username, password='password')
+
+        response = self.client.get(self.url, {'tag_changes': 'oneway=*'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 1)
+        response = self.client.get(self.url, {'tag_changes': 'oneway=yes'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 1)
+        response = self.client.get(self.url, {'tag_changes': 'highway=*'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
+        response = self.client.get(self.url, {'tag_changes': 'lanes=*'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 27)
+        response = self.client.get(self.url, {'tag_changes': 'lanes=2'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 27)
+        response = self.client.get(self.url, {'tag_changes': 'shop=*'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 26)
+        response = self.client.get(self.url, {'tag_changes': 'shop=supermarket'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 26)
+
     def test_comments_count_filters(self):
         """Test filters by comments_count field in the changeset list view.
         """
@@ -348,102 +378,89 @@ class TestChangesetListViewOrdering(APITestCase):
         HarmfulChangesetFactory.create_batch(
             24, form_create=20, modify=2, delete=40, comments_count=3
             )
-        GoodChangesetFactory.create_batch(24, form_create=1000, modify=20)
+        GoodChangesetFactory.create_batch(24, form_create=1000, modify=20, create=1, delete=15)
         self.url = reverse('changeset:list')
 
     def test_ordering(self):
         # default ordering is by descending id
         response = self.client.get(self.url)
-        self.assertEqual(
-            [i['id'] for i in response.data.get('features')],
-            [i.id for i in Changeset.objects.all()]
-            )
+        ids = [i['id'] for i in response.data.get('features')]
+        self.assertTrue(ids[0] > ids[1])
+
         # ascending id
         response = self.client.get(self.url, {'order_by': 'id'})
-        self.assertEqual(
-            [i['id'] for i in response.data.get('features')],
-            [i.id for i in Changeset.objects.order_by('id')]
-            )
+        ids = [i['id'] for i in response.data.get('features')]
+        self.assertTrue(ids[0] < ids[1])
+
         # ascending date ordering
         response = self.client.get(self.url, {'order_by': 'date'})
-        self.assertEqual(
-            [i['id'] for i in response.data.get('features')],
-            [i.id for i in Changeset.objects.order_by('date')]
-            )
+        dates = [i['properties']['date'] for i in response.data.get('features')]
+        self.assertTrue(dates[0] < dates[1])
+
         # descending date ordering
         response = self.client.get(self.url, {'order_by': '-date'})
-        self.assertEqual(
-            [i['id'] for i in response.data.get('features')],
-            [i.id for i in Changeset.objects.order_by('-date')]
-            )
+        dates = [i['properties']['date'] for i in response.data.get('features')]
+        self.assertTrue(dates[0] > dates[1])
+
         # ascending check_date
         response = self.client.get(self.url, {'order_by': 'check_date'})
-        self.assertEqual(
-            [i['id'] for i in response.data.get('features')],
-            [i.id for i in Changeset.objects.order_by('check_date')]
-            )
+        check_dates = [i['properties']['check_date'] for i in response.data.get('features')]
+        self.assertTrue(check_dates[0] < check_dates[1])
+
         # descending check_date ordering
         response = self.client.get(self.url, {'order_by': '-check_date'})
-        self.assertEqual(
-            [i['id'] for i in response.data.get('features')],
-            [i.id for i in Changeset.objects.order_by('-check_date')]
-            )
+        check_dates = [i['properties']['check_date'] for i in response.data.get('features')]
+        self.assertTrue(check_dates[0] > check_dates[1])
+
         # ascending create ordering
         response = self.client.get(self.url, {'order_by': 'create'})
-        self.assertEqual(
-            [i['id'] for i in response.data.get('features')],
-            [i.id for i in Changeset.objects.order_by('create')]
-            )
+        create = [i['properties']['create'] for i in response.data.get('features')]
+        self.assertTrue(create[0] < create[-1])
+
         # descending create ordering
         response = self.client.get(self.url, {'order_by': '-create'})
-        self.assertEqual(
-            [i['id'] for i in response.data.get('features')],
-            [i.id for i in Changeset.objects.order_by('-create')]
-            )
+        create = [i['properties']['create'] for i in response.data.get('features')]
+        self.assertTrue(create[0] > create[-1])
+
         # ascending modify ordering
         response = self.client.get(self.url, {'order_by': 'modify'})
-        self.assertEqual(
-            [i['id'] for i in response.data.get('features')],
-            [i.id for i in Changeset.objects.order_by('modify')]
-            )
+        modify = [i['properties']['modify'] for i in response.data.get('features')]
+        self.assertTrue(modify[0] < modify[-1])
+
         # descending modify ordering
         response = self.client.get(self.url, {'order_by': '-modify'})
-        self.assertEqual(
-            [i['id'] for i in response.data.get('features')],
-            [i.id for i in Changeset.objects.order_by('-modify')]
-            )
+        modify = [i['properties']['modify'] for i in response.data.get('features')]
+        self.assertTrue(modify[0] > modify[-1])
+
         # ascending delete ordering
         response = self.client.get(self.url, {'order_by': 'delete'})
-        self.assertEqual(
-            [i['id'] for i in response.data.get('features')],
-            [i.id for i in Changeset.objects.order_by('delete')]
-            )
+        delete = [i['properties']['delete'] for i in response.data.get('features')]
+        self.assertTrue(delete[0] < delete[-1])
+
         # descending delete ordering
         response = self.client.get(self.url, {'order_by': '-delete'})
-        self.assertEqual(
-            [i['id'] for i in response.data.get('features')],
-            [i.id for i in Changeset.objects.order_by('-delete')]
-            )
+        delete = [i['properties']['delete'] for i in response.data.get('features')]
+        self.assertTrue(delete[0] > delete[-1])
+
         # ascending comments_count ordering
         response = self.client.get(self.url, {'order_by': 'comments_count'})
-        self.assertEqual(
-            [i['id'] for i in response.data.get('features')],
-            [i.id for i in Changeset.objects.order_by('comments_count')]
-            )
+        comments_count = [
+            i['properties']['comments_count'] for i in response.data.get('features')
+            ]
+        self.assertTrue(comments_count[0] < comments_count[-1])
+
         # descending comments_count ordering
         response = self.client.get(self.url, {'order_by': '-comments_count'})
-        self.assertEqual(
-            [i['id'] for i in response.data.get('features')],
-            [i.id for i in Changeset.objects.order_by('-comments_count')]
-            )
+        comments_count = [
+            i['properties']['comments_count'] for i in response.data.get('features')
+            ]
+        self.assertTrue(comments_count[0] > comments_count[-1])
 
     def test_invalid_ordering_field(self):
         # default ordering is by descending id
         response = self.client.get(self.url, {'order_by': 'user'})
-        self.assertEqual(
-            [i['id'] for i in response.data.get('features')],
-            [i.id for i in Changeset.objects.all()]
-            )
+        ids = [i['id'] for i in response.data.get('features')]
+        self.assertTrue(ids[0] > ids[1])
 
     def test_number_reasons_ordering(self):
         changeset_1, changeset_2 = Changeset.objects.all()[:2]
