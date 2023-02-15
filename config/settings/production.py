@@ -13,7 +13,7 @@ from .common import *  # noqa
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 # Raises ImproperlyConfigured exception if DJANO_SECRET_KEY not in os.environ
-SECRET_KEY = env("DJANGO_SECRET_KEY", default="dont.forget-to-set-the-env-var")
+SECRET_KEY = env.str("DJANGO_SECRET_KEY", default="dont.forget-to-set-the-env-var")
 
 # This ensures that Django will be able to detect a secure connection
 # properly on Heroku.
@@ -58,31 +58,14 @@ TEMPLATES[0]['OPTIONS']['loaders'] = [
     ]),
 ]
 
-# DATABASE CONFIGURATION
-# ------------------------------------------------------------------------------
-# Raises ImproperlyConfigured exception if DATABASE_URL not in os.environ
-# DATABASES = {
-#     'default': env.db('DATABASE_URL', default='postgres:///osmcha'),
-# }
-DATABASES = {
-    'default': {
-         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-         'NAME': 'osmcha',
-         'USER': env('POSTGRES_USER'),
-         'PASSWORD': env('POSTGRES_PASSWORD'),
-         'HOST': env('PGHOST', default='localhost')
-     }
-}
 # CACHING
 # ------------------------------------------------------------------------------
 # Configured to use Redis, if you prefer another method, comment the REDIS and
 # set up your prefered way.
-
-REDIS_LOCATION = '{0}/{1}'.format(env('REDIS_URL', default='redis://127.0.0.1:6379'), 0)
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': REDIS_LOCATION,
+        'LOCATION': REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'IGNORE_EXCEPTIONS': True,  # mimics memcache behavior.
@@ -98,11 +81,11 @@ CACHE_MIDDLEWARE_SECONDS = 180
 CACHE_MIDDLEWARE_KEY_PREFIX = ''
 
 # Your production stuff: Below this line define 3rd party library settings
-
 CELERYBEAT_SCHEDULE = {
     'schedule-name': {
         'task': 'osmchadjango.changeset.tasks.fetch_latest',
-        'schedule': 60 #Run every 60 seconds
+        # Run every 60 seconds by default.
+        'schedule': env.int("DJANGO_FETCH_LATEST_SCHEDULE", default=60),
     },
 }
 
@@ -121,9 +104,9 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle',
         ),
     'DEFAULT_THROTTLE_RATES': {
-        'anon': env('ANON_USER_THROTTLE_RATE', default='30/min'),
-        'user': env('COMMON_USER_THROTTLE_RATE', default='180/min'),
-        'non_staff_user': env('NON_STAFF_USER_THROTTLE_RATE', default='3/min')
+        'anon': env.str('ANON_USER_THROTTLE_RATE', default='30/min'),
+        'user': env.str('COMMON_USER_THROTTLE_RATE', default='180/min'),
+        'non_staff_user': env.str('NON_STAFF_USER_THROTTLE_RATE', default='3/min')
         },
     'ORDERING_PARAM': 'order_by',
     }

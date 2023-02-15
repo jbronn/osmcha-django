@@ -609,11 +609,11 @@ class ChangesetCommentAPIView(ModelViewSet):
             status = "#REVIEWED_{} #OSMCHA".format(
                 'BAD' if self.changeset.harmful else 'GOOD'
                 )
-        return """{}
+        return f"""{message}
             ---
-            {}
-            Published using OSMCha: https://osmcha.org/changesets/{}
-            """.format(message, status, self.changeset.id)
+            {status}
+            Published using OSMCha: {settings.OSMCHA_FRONTEND_URL}/changesets/{self.changeset.id}
+            """
 
 
 def validate_feature(feature):

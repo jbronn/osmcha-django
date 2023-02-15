@@ -11,23 +11,22 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 from __future__ import absolute_import, unicode_literals
 
 import environ
-import os
 
 
 ROOT_DIR = environ.Path(__file__) - 3  # (/a/b/myfile.py - 3 = /)
 APPS_DIR = ROOT_DIR.path('osmchadjango')
 
-env = environ.Env()
+env = environ.FileAwareEnv()
 
 # .env file, should load only in development environment
-READ_DOT_ENV_FILE = env('DJANGO_READ_DOT_ENV_FILE', default=False)
+READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=False)
 
 if READ_DOT_ENV_FILE:
     # Operating System Environment variables have precedence over variables defined in the .env file,
     # that is to say variables from the .env files will only be used if not defined
     # as environment variables.
     env_file = str(ROOT_DIR.path('.env'))
-    print('Loading : {}'.format(env_file))
+    print(f"Loading : {env_file}")
     env.read_env(env_file)
     print('The .env file has been loaded. See common.py for more information')
 
@@ -123,19 +122,16 @@ MANAGERS = ADMINS
 # DATABASE CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#databases
-# DATABASES = {
-#     'default': env.db('DATABASE_URL', default='postgres:///osmcha'),
-# }
 DATABASES = {
-    'default': {
-         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-         'NAME': 'osmcha',
-         'USER': env('POSTGRES_USER'),
-         'PASSWORD': env('POSTGRES_PASSWORD'),
-         'HOST': env('PGHOST', default='localhost')
-     }
+    "default": {
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": env.str("PGDATABASE", "osmcha"),
+        "USER": env.str("POSTGRES_USER"),
+        "PASSWORD": env.str("POSTGRES_PASSWORD"),
+        "HOST": env.str("PGHOST", default="localhost")
+    }
 }
-DATABASES['default']['ATOMIC_REQUESTS'] = True
+DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
 
 # GENERAL CONFIGURATION
@@ -237,7 +233,8 @@ ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # CELERY CONFIGURATION
-BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+REDIS_URL = env.str('REDIS_URL', default='redis://localhost:6379/0')
+BROKER_URL = env.str('CELERY_BROKER_URL', default=REDIS_URL)
 
 # Some really nice defaults
 # ACCOUNT_AUTHENTICATION_METHOD = 'username'
@@ -252,11 +249,9 @@ AUTH_USER_MODEL = 'users.User'
 AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
 
 # SOCIAL AUTH CONFIGURATION
-SOCIAL_AUTH_DEFAULT_USERNAME = lambda u: slugify(u)
 SOCIAL_AUTH_ASSOCIATE_BY_EMAIL = True
-
-SOCIAL_AUTH_OPENSTREETMAP_KEY = env('OAUTH_OSM_KEY', default='')
-SOCIAL_AUTH_OPENSTREETMAP_SECRET = env('OAUTH_OSM_SECRET', default='')
+SOCIAL_AUTH_OPENSTREETMAP_KEY = env.str('OAUTH_OSM_KEY', default='')
+SOCIAL_AUTH_OPENSTREETMAP_SECRET = env.str('OAUTH_OSM_SECRET', default='')
 
 # AUTHENTICATION CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -299,7 +294,7 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'level': env.str('DJANGO_LOG_LEVEL', 'INFO'),
         },
         'osmchadjango.users': {
             'handlers': ['console', ],
@@ -316,7 +311,7 @@ CHANGESETS_FILTER = env('DJANGO_CHANGESETS_FILTER', default=None)
 
 # Enable/disable the functionality to post comments to changesets when they
 # are reviewed
-ENABLE_POST_CHANGESET_COMMENTS = env('DJANGO_ENABLE_CHANGESET_COMMENTS', default=False)
+ENABLE_POST_CHANGESET_COMMENTS = env.bool('DJANGO_ENABLE_CHANGESET_COMMENTS', default=False)
 
 # Your common stuff: Below this line define 3rd party library settings
 REST_FRAMEWORK = {
@@ -333,7 +328,7 @@ REST_FRAMEWORK = {
         ),
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_THROTTLE_RATES': {
-        'non_staff_user': env('NON_STAFF_USER_THROTTLE_RATE', default='3/min')
+        'non_staff_user': env.str('NON_STAFF_USER_THROTTLE_RATE', default='3/min')
         },
     'ORDERING_PARAM': 'order_by',
     }
@@ -360,26 +355,27 @@ CACHALOT_ENABLED = True
 # FRONTEND SETTINGS
 # -----------------------------------------------------------------------------
 # Version or any valid git branch tag of front-end code
-OSMCHA_FRONTEND_VERSION = env('OSMCHA_FRONTEND_VERSION', default='oh-pages')
+OSMCHA_FRONTEND_URL = env.str('OSMCHA_FRONTEND_URL', default='https://osmcha.org')
+OSMCHA_FRONTEND_VERSION = env.str('OSMCHA_FRONTEND_VERSION', default='oh-pages')
 
 # MapRoulette API CONFIG
-MAP_ROULETTE_API_KEY = env('MAP_ROULETTE_API_KEY', default=None)
-MAP_ROULETTE_API_URL = env('MAP_ROULETTE_API_URL', default="https://maproulette.org/api/v2/")
+MAP_ROULETTE_API_KEY = env.str('MAP_ROULETTE_API_KEY', default=None)
+MAP_ROULETTE_API_URL = env.str('MAP_ROULETTE_API_URL', default="https://maproulette.org/api/v2/")
 
 # OSM URLs
-OSM_API_URL = env('OSM_API_URL', default='https://api.openstreetmap.org')
-OSM_BASE_URL = env('OSM_BASE_URL', default='https://www.openstreetmap.org')
-OSM_CHANGESETS_MAX_IMPORT = env('OSM_CHANGESETS_MAX_IMPORT', cast=int, default=1000)
-OSM_CHANGESETS_URL = env('OSM_CHANGESETS_URL', default='https://planet.openstreetmap.org/replication/changesets')
+OSM_API_URL = env.str('OSM_API_URL', default='https://api.openstreetmap.org')
+OSM_BASE_URL = env.str('OSM_BASE_URL', default='https://www.openstreetmap.org')
+OSM_CHANGESETS_MAX_IMPORT = env.int('OSM_CHANGESETS_MAX_IMPORT', default=1000)
+OSM_CHANGESETS_URL = env.str('OSM_CHANGESETS_URL', default='https://planet.openstreetmap.org/replication/changesets')
 
-OAUTH_API_URL = env('OAUTH_API_URL', default=OSM_API_URL)
-OAUTH_BASE_URL = env(
+OAUTH_API_URL = env.str('OAUTH_API_URL', default=OSM_API_URL)
+OAUTH_BASE_URL = env.str(
     'OAUTH_BASE_URL',
-    default='{}/oauth'.format(OSM_BASE_URL)
-    )
+    default=f"{OSM_BASE_URL}/oauth"
+)
 # Define the URL to where the user will be redirected after the authentication
 # in OSM website
 OAUTH_REDIRECT_URI = env(
     'OAUTH_REDIRECT_URI',
     default='http://localhost:8000/oauth-landing.html'
-    )
+)

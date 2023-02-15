@@ -34,7 +34,7 @@ class FeatureSerializerToStaff(GeoFeatureModelSerializer):
         return obj.osm_link()
 
     def get_osm_user_link(self, obj):
-        return "{}/user".format(settings.OSM_BASE_URL)
+        return f"{settings.OSM_BASE_URL}/user"
 
 
 class FeatureSerializer(FeatureSerializerToStaff):

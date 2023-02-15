@@ -19,7 +19,7 @@ class AreaOfInterest(models.Model):
     geometry = models.GeometryField(blank=True, null=True)
 
     def __str__(self):
-        return '{} by {}'.format(self.name, self.user.username)
+        return f"{self.name} by {self.user.username}"
 
     def changesets(self, request=None):
         """Return the changesets that match the filters, including the geometry

@@ -39,7 +39,7 @@ class Feature(models.Model):
 
     def osm_link(self):
         """Return the link to the feature page on OSM website."""
-        return '{}/{}/{}'.format(settings.OSM_BASE_URL, self.osm_type, self.osm_id)
+        return f"{settings.OSM_BASE_URL}/{self.osm_type}/{self.osm_id}"
 
     @property
     def all_tags(self):

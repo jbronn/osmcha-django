@@ -52,7 +52,7 @@ class UserWhitelist(models.Model):
     whitelist_user = models.CharField(max_length=1000, db_index=True)
 
     def __str__(self):
-        return '{} whitelisted by {}'.format(self.whitelist_user, self.user)
+        return f"{self.whitelist_user} whitelisted by {self.user}"
 
     class Meta:
         ordering = ['-whitelist_user']
@@ -99,24 +99,20 @@ class Changeset(models.Model):
 
     def osm_link(self):
         """Return the link to the changeset page on OSM website."""
-        return '{}/changeset/{}'.format(settings.OSM_BASE_URL, self.id)
+        return f"{settings.OSM_BASE_URL}/changeset/{self.id}"
 
     def josm_link(self):
         """Return link to open changeset in JOSM."""
         josm_base = "http://127.0.0.1:8111/import?url="
-        changeset_url = "{}/api/0.6/changeset/{}/{}".format(
-            settings.OSM_API_URL,
-            self.id,
-            "download"
-            )
-        return "{}{}".format(josm_base, changeset_url)
+        changeset_url = f"{settings.OSM_BASE_URL}/api/0.6/changeset/{self.id}/download"
+        return f"{josm_base}{changeset_url}"
 
     def id_link(self):
         """Return link to open the area of the changeset in iD editor."""
-        id_base = "{}/edit?editor=id#map=16".format(settings.OSM_BASE_URL)
+        id_base = f"{settings.OSM_BASE_URL}/edit?editor=id#map=16"
         if self.bbox:
             centroid = [round(c, 5) for c in self.bbox.centroid.coords]
-            return "{}/{}/{}".format(id_base, centroid[1], centroid[0])
+            return f"{id_base}/{centroid[1]}/{centroid[0]}"
         else:
             return ""
 

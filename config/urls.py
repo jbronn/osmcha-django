@@ -24,27 +24,27 @@ if settings.DEBUG is False:  # if DEBUG is True it will be served automatically
             'static/<path>',
             static_views.serve,
             {'document_root': settings.STATIC_ROOT}
-            ),
-        ]
+        ),
+    ]
 
 api_urls = [
     path(
-        '{}'.format(API_BASE_URL),
+        API_BASE_URL,
         include("osmchadjango.changeset.urls", namespace="changeset")
-        ),
+    ),
     path(
-        '{}'.format(API_BASE_URL),
+        API_BASE_URL,
         include("osmchadjango.supervise.urls", namespace="supervise")
-        ),
+    ),
     path(
-        '{}'.format(API_BASE_URL),
+        API_BASE_URL,
         include("osmchadjango.users.urls", namespace="users")
-        ),
+    ),
     path(
-        '{}'.format(API_BASE_URL),
+        API_BASE_URL,
         include("osmchadjango.roulette_integration.urls", namespace="challenge")
-        ),
-    ]
+    ),
+]
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -67,18 +67,18 @@ urlpatterns += [
         r'^swagger(?P<format>\.json|\.yaml)$',
         schema_view.without_ui(cache_timeout=0),
         name='schema-json'
-        ),
+    ),
     re_path(
         r'^api-docs/$',
         schema_view.with_ui('swagger', cache_timeout=0),
         name='schema-swagger-ui'
-        ),
+    ),
 
     # include api_urls
     path(
         '',
         include(api_urls)
-        ),
+    ),
 
     # frontend urls
     path('', include("osmchadjango.frontend.urls", namespace="frontend")),
@@ -95,4 +95,4 @@ if settings.DEBUG:
         path('404/', defaults.page_not_found),
         path('500/', defaults.server_error),
         path('__debug__/', include(debug_toolbar.urls)),
-        ]
+    ]

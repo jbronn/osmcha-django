@@ -122,10 +122,7 @@ class ChangesetCommentAPI(object):
             resource_owner_key=user_token['oauth_token'],
             resource_owner_secret=user_token['oauth_token_secret']
             )
-        self.url = '{}/api/0.6/changeset/{}/comment/'.format(
-            settings.OSM_API_URL,
-            changeset_id
-            )
+        self.url = f"{settings.OSM_API_URL}/api/0.6/changeset/{changeset_id}/comment/"
 
     def post_comment(self, message=None):
         """Post comment to changeset."""

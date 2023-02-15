@@ -74,11 +74,11 @@ class SocialAuthAPIView(GenericAPIView):
     queryset = User.objects.all()
     serializer_class = SocialSignUpSerializer
 
-    request_token_url = '{}/request_token?oauth_callback={}'.format(
-        settings.OAUTH_BASE_URL,
-        settings.OAUTH_REDIRECT_URI
-        )
-    access_token_url = '{}/access_token'.format(settings.OAUTH_BASE_URL)
+    request_token_url = (
+        f"{settings.OAUTH_BASE_URL}/request_token?"
+        f"oauth_callback={settings.OAUTH_REDIRECT_URI}"
+    )
+    access_token_url = f"{settings.OAUTH_BASE_URL}/access_token"
 
     def get_access_token(self, oauth_token, oauth_token_secret, oauth_verifier):
         oauth = OAuth1Session(

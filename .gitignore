@@ -1,5 +1,7 @@
 # Python bytecode:
 *.py[co]
+.pythonhist
+venv/
 
 # Packaging files:
 *.egg*
@@ -19,6 +21,7 @@ build
 .settings
 
 # Linux Editors
+.bash_history
 *~
 \#*\#
 /.emacs.desktop
