@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import xml.etree.ElementTree as ET
 
 from django.urls import reverse
+from django.conf import settings
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point, LineString, GEOSGeometry
 
 from rest_framework.test import APITestCase
@@ -33,7 +34,7 @@ class TestAoIListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.user_2 = User.objects.create_user(
@@ -43,7 +44,7 @@ class TestAoIListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='42344',
             )
         self.area = AreaOfInterest.objects.create(
@@ -126,7 +127,7 @@ class TestAoICreateView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.url = reverse('supervise:aoi-list-create')
@@ -216,7 +217,7 @@ class TestAoICreateView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='4444',
             )
         self.client.login(username=self.user.username, password='password')
@@ -242,7 +243,7 @@ class TestAoIDetailAPIViews(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.aoi = AreaOfInterest.objects.create(
@@ -555,7 +556,7 @@ class TestAoIChangesetListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.aoi = AreaOfInterest.objects.create(
@@ -657,7 +658,7 @@ class TestAoIChangesetListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='42344',
             )
         UserWhitelistFactory(user=self.user, whitelist_user='test')
@@ -702,7 +703,7 @@ class TestAoIChangesetListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='42344',
             )
         UserWhitelistFactory(user=self.user, whitelist_user='test')
@@ -752,7 +753,7 @@ class TestAoIChangesetListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='42344',
             )
         BlacklistedUser.objects.create(
@@ -808,7 +809,7 @@ class TestAoIChangesetListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='42344',
             )
         BlacklistedUser.objects.create(
@@ -859,12 +860,16 @@ class TestAoIChangesetListView(APITestCase):
             reverse('supervise:aoi-changesets-feed', args=[self.aoi.pk])
             )
         self.assertEqual(response.status_code, 200)
-        rss_data = ET.fromstring(response.content).getchildren()[0].getchildren()
+        rss_data = ET.fromstring(response.content)[0]
         title = [i for i in rss_data if i.tag == 'title'][0]
         items = [i for i in rss_data if i.tag == 'item']
-        link = [i for i in items[0].getchildren() if i.tag == 'link'][0]
+        link = [i for i in items[0] if i.tag == 'link'][0]
         self.assertIn(
-            "?aoi=",
+            "{}/changesets/".format(settings.OSMCHA_URL),
+            link.text
+            )
+        self.assertIn(
+            "/?aoi=",
             link.text
             )
         self.assertEqual(
@@ -893,7 +898,7 @@ class TestAoIChangesetListView(APITestCase):
             reverse('supervise:aoi-changesets-feed', args=[self.aoi.pk])
             )
         self.assertEqual(response.status_code, 200)
-        rss_data = ET.fromstring(response.content).getchildren()[0].getchildren()
+        rss_data = ET.fromstring(response.content)[0]
         title = [i for i in rss_data if i.tag == 'title'][0]
         items = [i for i in rss_data if i.tag == 'item']
         self.assertEqual(
@@ -931,7 +936,7 @@ class TestAoIChangesetListView(APITestCase):
             reverse('supervise:aoi-changesets-feed', args=[self.aoi.pk])
             )
         self.assertEqual(response.status_code, 200)
-        rss_data = ET.fromstring(response.content).getchildren()[0].getchildren()
+        rss_data = ET.fromstring(response.content)[0]
         title = [i for i in rss_data if i.tag == 'title'][0]
         items = [i for i in rss_data if i.tag == 'item']
         self.assertEqual(
@@ -961,7 +966,7 @@ class TestAoIChangesetListView(APITestCase):
             reverse('supervise:aoi-changesets-feed', args=[aoi.pk])
             )
         self.assertEqual(response.status_code, 200)
-        rss_data = ET.fromstring(response.content).getchildren()[0].getchildren()
+        rss_data = ET.fromstring(response.content)[0]
         title = [i for i in rss_data if i.tag == 'title'][0]
         items = [i for i in rss_data if i.tag == 'item']
         self.assertEqual(
@@ -987,7 +992,7 @@ class TestAoIStatsAPIViews(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.aoi = AreaOfInterest.objects.create(
@@ -1095,7 +1100,7 @@ class TestBlacklistedUserListAPIView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.staff_user = User.objects.create_user(
@@ -1106,7 +1111,7 @@ class TestBlacklistedUserListAPIView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.staff_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='999898',
             )
         BlacklistedUser.objects.create(
@@ -1152,7 +1157,7 @@ class TestBlacklistedUserCreateAPIView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.staff_user = User.objects.create_user(
@@ -1163,7 +1168,7 @@ class TestBlacklistedUserCreateAPIView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.staff_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='999898',
             )
         self.url = reverse('supervise:blacklist-list-create')
@@ -1196,7 +1201,7 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.staff_user = User.objects.create_user(
@@ -1207,7 +1212,7 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.staff_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='999898',
             )
 

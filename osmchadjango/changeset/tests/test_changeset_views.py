@@ -23,8 +23,6 @@ class TestChangesetListView(APITestCase):
     def setUp(self):
         SuspectChangesetFactory.create_batch(26)
         ChangesetFactory.create_batch(26)
-        # list endpoints will not list Changesets with user=""
-        ChangesetFactory(user="")
         self.user = User.objects.create_user(
             username='test',
             password='password',
@@ -32,7 +30,7 @@ class TestChangesetListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.url = reverse('changeset:list')
@@ -315,7 +313,7 @@ class TestChangesetFilteredViews(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.client.login(username=self.user.username, password='password')
@@ -371,7 +369,7 @@ class TestChangesetListViewOrdering(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.client.login(username=self.user.username, password='password')
@@ -382,7 +380,7 @@ class TestChangesetListViewOrdering(APITestCase):
         self.url = reverse('changeset:list')
 
     def test_ordering(self):
-        # default ordering is by descending id
+        # descending id ordering is the default
         response = self.client.get(self.url)
         ids = [i['id'] for i in response.data.get('features')]
         self.assertTrue(ids[0] > ids[1])
@@ -391,6 +389,8 @@ class TestChangesetListViewOrdering(APITestCase):
         response = self.client.get(self.url, {'order_by': 'id'})
         ids = [i['id'] for i in response.data.get('features')]
         self.assertTrue(ids[0] < ids[1])
+        dates = [i['properties']['date'] for i in response.data.get('features')]
+        self.assertTrue(dates[0] > dates[1])
 
         # ascending date ordering
         response = self.client.get(self.url, {'order_by': 'date'})
@@ -521,7 +521,7 @@ class TestChangesetDetailView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.client.login(username=self.user.username, password='password')
@@ -547,7 +547,7 @@ class TestChangesetDetailView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.client.login(username=self.user.username, password='password')
@@ -576,7 +576,7 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.admin_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.user = User.objects.create_user(
@@ -586,7 +586,7 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='234312',
             )
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
@@ -736,14 +736,11 @@ class TestCheckChangesetViews(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             extra_data={
                 'id': '123123',
-                'access_token': {
-                    'oauth_token': 'aaaa',
-                    'oauth_token_secret': 'bbbb'
-                    }
+                'access_token': '1shjasgw'
                 }
             )
         self.tag_1 = TagFactory(name='Illegal import')
@@ -992,14 +989,11 @@ class TestUncheckChangesetView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             extra_data={
                 'id': '123123',
-                'access_token': {
-                    'oauth_token': 'aaaa',
-                    'oauth_token_secret': 'bbbb'
-                    }
+                'access_token': 'ajhsjhags'
                 }
             )
         self.suspect_changeset = SuspectChangesetFactory()
@@ -1084,7 +1078,7 @@ class TestUncheckChangesetView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=staff_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='87873',
             )
         self.client.login(username=staff_user.username, password='password')
@@ -1113,7 +1107,7 @@ class TestAddTagToChangeset(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='999',
             )
         self.changeset_user = User.objects.create_user(
@@ -1123,7 +1117,7 @@ class TestAddTagToChangeset(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.changeset_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.changeset = ChangesetFactory()
@@ -1195,7 +1189,7 @@ class TestAddTagToChangeset(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=other_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='28763',
             )
         self.client.login(username=other_user.username, password='password')
@@ -1215,7 +1209,7 @@ class TestAddTagToChangeset(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=staff_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='28763',
             )
         self.client.login(username=staff_user.username, password='password')
@@ -1236,7 +1230,7 @@ class TestRemoveTagToChangeset(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='999',
             )
         self.changeset_user = User.objects.create_user(
@@ -1246,7 +1240,7 @@ class TestRemoveTagToChangeset(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.changeset_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.changeset = ChangesetFactory()
@@ -1310,7 +1304,7 @@ class TestRemoveTagToChangeset(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=other_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='28763',
             )
         self.client.login(username=other_user.username, password='password')
@@ -1330,7 +1324,7 @@ class TestRemoveTagToChangeset(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=staff_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='28763',
             )
         self.client.login(username=staff_user.username, password='password')
@@ -1353,7 +1347,7 @@ class TestThrottling(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
 
@@ -1402,7 +1396,7 @@ class TestThrottling(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='8987',
             )
         self.client.login(username=user.username, password='password')
@@ -1423,7 +1417,7 @@ class TestThrottling(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='8987',
             )
         self.client.login(username=user.username, password='password')

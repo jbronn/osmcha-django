@@ -63,7 +63,6 @@ THIRD_PARTY_APPS = (
 LOCAL_APPS = (
     'osmchadjango.users',  # custom users app
     'osmchadjango.changeset',
-    'osmchadjango.feature',
     'osmchadjango.supervise',
     'osmchadjango.frontend',
     'osmchadjango.roulette_integration',
@@ -250,14 +249,17 @@ AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
 
 # SOCIAL AUTH CONFIGURATION
 SOCIAL_AUTH_ASSOCIATE_BY_EMAIL = True
-SOCIAL_AUTH_OPENSTREETMAP_KEY = env.str('OAUTH_OSM_KEY', default='')
-SOCIAL_AUTH_OPENSTREETMAP_SECRET = env.str('OAUTH_OSM_SECRET', default='')
+
+SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY = env("OAUTH2_OSM_KEY", default="")
+SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET = env("OAUTH2_OSM_SECRET", default="")
+SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SCOPE = ["read_prefs",  "write_api"]
+SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_USE_PKCE = False
 
 # AUTHENTICATION CONFIGURATION
 # ------------------------------------------------------------------------------
 AUTHENTICATION_BACKENDS = (
-    'osmchadjango.users.backends.OpenStreetMapOAuth',
-    'django.contrib.auth.backends.ModelBackend',
+    "social_core.backends.openstreetmap_oauth2.OpenStreetMapOAuth2",
+    "django.contrib.auth.backends.ModelBackend",
 )
 
 SOCIAL_AUTH_PIPELINE = (
@@ -348,9 +350,15 @@ SWAGGER_SETTINGS = {
         },
     }
 
-# CACHALOT SETTINGS
-CACHALOT_TIMEOUT = 180
-CACHALOT_ENABLED = True
+# OSM SERVER SETTINGS
+OSM_SERVER_URL = env('OSM_SERVER_URL', default='https://www.openstreetmap.org')
+OSM_API_URL = env.str('OSM_API_URL', default='https://api.openstreetmap.org')
+OSM_CHANGESETS_MAX_IMPORT = env.int('OSM_CHANGESETS_MAX_IMPORT', default=1000)
+OSM_CHANGESETS_URL = env.str('OSM_CHANGESETS_URL', default='https://planet.openstreetmap.org/replication/changesets')
+OSM_PLANET_BASE_URL = env(
+    'OSM_PLANET_BASE_URL',
+    default='https://planet.openstreetmap.org/replication/changesets/'
+    )
 
 # FRONTEND SETTINGS
 # -----------------------------------------------------------------------------
@@ -362,12 +370,6 @@ OSMCHA_FRONTEND_VERSION = env.str('OSMCHA_FRONTEND_VERSION', default='oh-pages')
 MAP_ROULETTE_API_KEY = env.str('MAP_ROULETTE_API_KEY', default=None)
 MAP_ROULETTE_API_URL = env.str('MAP_ROULETTE_API_URL', default="https://maproulette.org/api/v2/")
 
-# OSM URLs
-OSM_API_URL = env.str('OSM_API_URL', default='https://api.openstreetmap.org')
-OSM_BASE_URL = env.str('OSM_BASE_URL', default='https://www.openstreetmap.org')
-OSM_CHANGESETS_MAX_IMPORT = env.int('OSM_CHANGESETS_MAX_IMPORT', default=1000)
-OSM_CHANGESETS_URL = env.str('OSM_CHANGESETS_URL', default='https://planet.openstreetmap.org/replication/changesets')
-
 OAUTH_API_URL = env.str('OAUTH_API_URL', default=OSM_API_URL)
 OAUTH_BASE_URL = env.str(
     'OAUTH_BASE_URL',
@@ -378,4 +380,6 @@ OAUTH_BASE_URL = env.str(
 OAUTH_REDIRECT_URI = env(
     'OAUTH_REDIRECT_URI',
     default='http://localhost:8000/oauth-landing.html'
-)
+    )
+
+OSMCHA_URL = env('OSMCHA_URL', default='https://osmcha.org')

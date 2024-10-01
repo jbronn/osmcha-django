@@ -4,18 +4,22 @@ from os.path import join
 from urllib.parse import quote
 import yaml
 
+try:
+    from yaml import CLoader as Loader
+except ImportError:
+    from yaml import Loader
+
 from django.conf import settings
 from django.utils.timezone import now
+from django.db.utils import IntegrityError
 
 import requests
-from requests_oauthlib import OAuth1Session
-from celery import shared_task, group
+from requests_oauthlib import OAuth2Session
 from osmcha.changeset import Analyse, ChangesetList
 
 from .models import Changeset, SuspicionReasons, Import
 
 
-@shared_task
 def create_changeset(changeset_id):
     """Analyse and create the changeset in the database."""
     ch = Analyse(changeset_id)
@@ -23,34 +27,38 @@ def create_changeset(changeset_id):
 
     # remove suspicion_reasons
     ch_dict = ch.get_dict()
-    ch_dict.pop('suspicion_reasons')
+    ch_dict.pop("suspicion_reasons")
 
     # remove bbox field if it is not a valid geometry
-    if ch.bbox == 'GEOMETRYCOLLECTION EMPTY':
-        ch_dict.pop('bbox')
+    if ch.bbox == "GEOMETRYCOLLECTION EMPTY":
+        ch_dict.pop("bbox")
 
     # save changeset.
     changeset, created = Changeset.objects.update_or_create(
-        id=ch_dict['id'],
-        defaults=ch_dict
-        )
+        id=ch_dict["id"], defaults=ch_dict
+    )
 
     if ch.suspicion_reasons:
         for reason in ch.suspicion_reasons:
             reason, created = SuspicionReasons.objects.get_or_create(name=reason)
             reason.changesets.add(changeset)
 
-    print('{c[id]} created'.format(c=ch_dict))
+    print("{c[id]} created".format(c=ch_dict))
     return changeset
 
 
-@shared_task
 def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
-    """Filter the changesets of the replication file by the area defined in the
+    """Filter changesets from a replication file by the area defined in the
     GeoJSON file.
     """
     cl = ChangesetList(url, geojson_filter)
-    group(create_changeset.s(c['id']) for c in cl.changesets)()
+    for c in cl.changesets:
+        print("Creating changeset {}".format(c["id"]))
+        try:
+            create_changeset(c["id"])
+        except IntegrityError as e:
+            print("IntegrityError when importing {}.".format(c["id"]))
+            print(e)
 
 
 def format_url(n):
@@ -62,9 +70,8 @@ def format_url(n):
         (n % 1000)
     )
 
-@shared_task
 def import_replications(start, end):
-    """Recieves a start and a end number and import each replication file in
+    """Recieves a start and an end number, and import each replication file in
     this interval.
     """
     imp, created = Import.objects.get_or_create(start=start, end=end)
@@ -72,7 +79,9 @@ def import_replications(start, end):
         imp.date = now()
         imp.save()
     urls = [format_url(n) for n in range(start, end + 1)]
-    group(get_filter_changeset_file.s(url) for url in urls)()
+    for url in urls:
+        print("Importing {}".format(url))
+        get_filter_changeset_file(url)
 
 
 def get_last_replication_id():
@@ -86,7 +95,6 @@ def get_last_replication_id():
     return state.get('sequence', 0)
 
 
-@shared_task
 def fetch_latest():
     """Function to import all the replication files since the last import or the
     last 1000.
@@ -113,31 +121,40 @@ class ChangesetCommentAPI(object):
     """Class that allows us to publish comments in changesets on the
     OpenStreetMap website.
     """
+
     def __init__(self, user, changeset_id):
         self.changeset_id = changeset_id
-        user_token = user.social_auth.all().first().access_token
-        self.client = OAuth1Session(
-            settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
-            client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET,
-            resource_owner_key=user_token['oauth_token'],
-            resource_owner_secret=user_token['oauth_token_secret']
-            )
-        self.url = f"{settings.OSM_API_URL}/api/0.6/changeset/{changeset_id}/comment/"
+        user_token = user.social_auth.all().first().extra_data
+        user_token['token_type'] = 'Bearer'
+        self.client = OAuth2Session(
+            settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY,
+            token=user_token,
+        )
+        self.url = "{}/api/0.6/changeset/{}/comment/".format(
+            settings.OSM_SERVER_URL, changeset_id
+        )
 
     def post_comment(self, message=None):
         """Post comment to changeset."""
-        response = self.client.post(
+        response = self.client.request(
+            'POST',
             self.url,
-            data='text={}'.format(quote(message)).encode("utf-8")
-            )
+            data="text={}".format(quote(message)).encode("utf-8"),
+            client_id=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY,
+            client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET
+        )
         if response.status_code == 200:
             print(
-                'Comment in the changeset {} posted successfully.'.format(
+                "Comment in the changeset {} posted successfully.".format(
                     self.changeset_id
-                    )
                 )
-            return {'success': True}
+            )
+            return {"success": True}
         else:
-            print("""Some error occurred and it wasn't possible to post the
-                comment to the changeset {}.""".format(self.changeset_id))
-            return {'success': False}
+            print(
+                """Some error occurred and it wasn't possible to post the
+                comment to the changeset {}.""".format(
+                    self.changeset_id
+                )
+            )
+            return {"success": False}

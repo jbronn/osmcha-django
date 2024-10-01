@@ -62,6 +62,3 @@ REST_FRAMEWORK = {
         },
     'ORDERING_PARAM': 'order_by',
     }
-
-# CACHALOT SETTINGS
-CACHALOT_ENABLED = False
