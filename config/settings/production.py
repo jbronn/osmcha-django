@@ -81,13 +81,6 @@ CACHE_MIDDLEWARE_SECONDS = 180
 CACHE_MIDDLEWARE_KEY_PREFIX = ''
 
 # Your production stuff: Below this line define 3rd party library settings
-CELERYBEAT_SCHEDULE = {
-    'schedule-name': {
-        'task': 'osmchadjango.changeset.tasks.fetch_latest',
-        # Run every 60 seconds by default.
-        'schedule': env.int("DJANGO_FETCH_LATEST_SCHEDULE", default=60),
-    },
-}
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

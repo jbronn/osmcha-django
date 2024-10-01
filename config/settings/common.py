@@ -231,10 +231,7 @@ ROOT_URLCONF = 'config.urls'
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# CELERY CONFIGURATION
 REDIS_URL = env.str('REDIS_URL', default='redis://localhost:6379/0')
-BROKER_URL = env.str('CELERY_BROKER_URL', default=REDIS_URL)
-
 # Some really nice defaults
 # ACCOUNT_AUTHENTICATION_METHOD = 'username'
 # ACCOUNT_EMAIL_REQUIRED = True
@@ -354,7 +351,6 @@ SWAGGER_SETTINGS = {
 OSM_SERVER_URL = env('OSM_SERVER_URL', default='https://www.openstreetmap.org')
 OSM_API_URL = env.str('OSM_API_URL', default='https://api.openstreetmap.org')
 OSM_CHANGESETS_MAX_IMPORT = env.int('OSM_CHANGESETS_MAX_IMPORT', default=1000)
-OSM_CHANGESETS_URL = env.str('OSM_CHANGESETS_URL', default='https://planet.openstreetmap.org/replication/changesets')
 OSM_PLANET_BASE_URL = env(
     'OSM_PLANET_BASE_URL',
     default='https://planet.openstreetmap.org/replication/changesets/'
@@ -379,7 +375,8 @@ OAUTH_BASE_URL = env.str(
 # in OSM website
 OAUTH_REDIRECT_URI = env(
     'OAUTH_REDIRECT_URI',
-    default='http://localhost:8000/oauth-landing.html'
+    default='http://127.0.0.1:3000/authorized'
     )
 
 OSMCHA_URL = env('OSMCHA_URL', default='https://osmcha.org')
+OSM_API_USER_AGENT = {"User-Agent": "OSMCha osmcha-django v4"}

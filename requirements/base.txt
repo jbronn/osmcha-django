@@ -17,7 +17,7 @@ social-auth-core==4.5.3
 
 # DRF and DRF-gis
 djangorestframework==3.11.2
-djangorestframework-gis==0.17
+djangorestframework-gis==1.0.0
 djangorestframework-csv==2.1.1
 django-filter==2.4.0
 django-cors-headers==3.7.0
@@ -33,9 +33,6 @@ django-autoslug==1.9.8
 # Time zones support
 pytz==2021.1
 
-# Celery support
-celery==4.4.7
-
 # Redis support
 django-redis==4.11.0
 redis==2.10.6
@@ -43,7 +40,7 @@ redis==2.10.6
 # Your custom requirements go here
 # Install OSMCha from fork with support for URL customization.
 https://github.com/radiant-maxar/osmcha/archive/main.zip
-PyYAML==6.0.1
+PyYAML==6.0.2
 
 # git python is required by the frontend management command
 GitPython==3.1.18
