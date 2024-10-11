@@ -30,6 +30,8 @@ from .serializers import (
 from .models import MappingTeam
 from ..changeset.models import Changeset
 
+import types
+
 User = get_user_model()
 
 
@@ -74,7 +76,7 @@ class SocialAuthAPIView(GenericAPIView):
     queryset = User.objects.all()
     serializer_class = SocialSignUpSerializer
 
-    base_oauth2_url = "{}/oauth2".format(settings.OSM_SERVER_URL)
+    base_oauth2_url = "{}/oauth2".format(settings.OSM_API_URL)
     token_url = "{}/token".format(base_oauth2_url)
     auth_url = "{}/authorize".format(base_oauth2_url)
     consumer = OAuth2Session(
@@ -92,11 +94,30 @@ class SocialAuthAPIView(GenericAPIView):
         )
 
     def get_user_token(self, request, access_token, *args, **kwargs):
+
+        # TODO: add a custom social-auth oauth2 backend which references the environment for URLs
+        def user_data_replacement_method(self, access_token, *args, **kwargs):
+            """Return user data provided"""
+
+            headers = {"Authorization": f"Bearer {access_token}"}
+            response = self.get_json(
+                url="{}/api/0.6/user/details.json".format(settings.OSM_API_URL),
+                headers=headers,
+            )
+
+            return {
+                "id": response["user"]["id"],
+                "username": response["user"]["display_name"],
+                "account_created": response["user"]["account_created"],
+                "avatar": response["user"].get("img", {}).get("href"),
+            }
+
         backend = load_backend(
             strategy=load_strategy(request),
             name="openstreetmap-oauth2",
             redirect_uri=settings.OAUTH_REDIRECT_URI,
         )
+        backend.user_data = types.MethodType(user_data_replacement_method, backend)
         user = backend.do_auth(access_token, *args, **kwargs)
         token, created = Token.objects.get_or_create(user=user)
         return {'token': token.key}
@@ -104,6 +125,8 @@ class SocialAuthAPIView(GenericAPIView):
     def post(self, request, *args, **kwargs):
         if 'code' not in request.data.keys() or not request.data['code']:
             login_url, state = self.consumer.authorization_url(self.auth_url)
+            if settings.OSM_SERVER_URL != settings.OSM_API_URL:
+                login_url = login_url.replace(settings.OSM_API_URL, settings.OSM_SERVER_URL)
             return Response({"auth_url": login_url, "state": state})
         else:
             serializer = self.get_serializer(data=request.data)

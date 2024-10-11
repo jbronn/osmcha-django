@@ -72,7 +72,7 @@ class TestCommentChangesetAPIView(APITestCase):
         mock_oauth_client.assert_called_with(
             "POST",
             "{}/api/0.6/changeset/{}/comment/".format(
-                settings.OSM_SERVER_URL, self.harmful_changeset.id
+                settings.OSM_API_URL, self.harmful_changeset.id
             ),
             headers=settings.OSM_API_USER_AGENT,
             data="text={}".format(quote(message)).encode("utf-8"),

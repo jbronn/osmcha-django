@@ -99,17 +99,17 @@ class Changeset(models.Model):
 
     def osm_link(self):
         """Return the link to the changeset page on OSM website."""
-        return f"{settings.OSM_SERVER_URL}/changeset/{self.id}"
+        return f"{settings.OSM_API_URL}/changeset/{self.id}"
 
     def josm_link(self):
         """Return link to open changeset in JOSM."""
         josm_base = "http://127.0.0.1:8111/import?url="
-        changeset_url = f"{settings.OSM_SERVER_URL}/api/0.6/changeset/{self.id}/download"
+        changeset_url = f"{settings.OSM_API_URL}/api/0.6/changeset/{self.id}/download"
         return f"{josm_base}{changeset_url}"
 
     def id_link(self):
         """Return link to open the area of the changeset in iD editor."""
-        id_base = f"{settings.OSM_SERVER_URL}/edit?editor=id#map=16"
+        id_base = f"{settings.OSM_API_URL}/edit?editor=id#map=16"
         if self.bbox:
             centroid = [round(c, 5) for c in self.bbox.centroid.coords]
             return f"{id_base}/{centroid[1]}/{centroid[0]}"

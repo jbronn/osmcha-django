@@ -349,8 +349,9 @@ SWAGGER_SETTINGS = {
 
 # OSM SERVER SETTINGS
 OSM_SERVER_URL = env('OSM_SERVER_URL', default='https://www.openstreetmap.org')
-OSM_API_URL = env.str('OSM_API_URL', default='https://api.openstreetmap.org')
+OSM_API_URL = env.str('OSM_API_URL', OSM_SERVER_URL)
 OSM_CHANGESETS_MAX_IMPORT = env.int('OSM_CHANGESETS_MAX_IMPORT', default=1000)
+OSM_CHANGESETS_URL = env.str('OSM_CHANGESETS_URL', default='https://planet.openstreetmap.org/replication/changesets')
 OSM_PLANET_BASE_URL = env(
     'OSM_PLANET_BASE_URL',
     default='https://planet.openstreetmap.org/replication/changesets/'
@@ -369,7 +370,7 @@ MAP_ROULETTE_API_URL = env.str('MAP_ROULETTE_API_URL', default="https://maproule
 OAUTH_API_URL = env.str('OAUTH_API_URL', default=OSM_API_URL)
 OAUTH_BASE_URL = env.str(
     'OAUTH_BASE_URL',
-    default=f"{OSM_BASE_URL}/oauth"
+    default=f"{OSM_SERVER_URL}/oauth"
 )
 # Define the URL to where the user will be redirected after the authentication
 # in OSM website

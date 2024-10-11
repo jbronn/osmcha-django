@@ -130,7 +130,7 @@ class ChangesetCommentAPI(object):
             token=user_token,
         )
         self.url = "{}/api/0.6/changeset/{}/comment/".format(
-            settings.OSM_SERVER_URL, changeset_id
+            settings.OSM_API_URL, changeset_id
         )
 
     def post_comment(self, message=None):
